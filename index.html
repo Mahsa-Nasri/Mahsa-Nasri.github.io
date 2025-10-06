@@ -16,12 +16,49 @@
             color: #ffffff;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             line-height: 1.6;
+            overflow-x: hidden;
+            cursor: none;
+        }
+        
+        #canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+        
+        .cursor {
+            position: fixed;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #ffffff;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9999;
+            transition: transform 0.1s ease;
+            mix-blend-mode: difference;
+        }
+        
+        .cursor-trail {
+            position: fixed;
+            width: 8px;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9998;
         }
         
         nav {
-            background-color: #1a1a1a;
+            background-color: rgba(26, 26, 26, 0.9);
             padding: 1rem 2rem;
             box-shadow: 0 2px 10px rgba(255, 255, 255, 0.1);
+            position: relative;
+            z-index: 100;
+            backdrop-filter: blur(10px);
         }
         
         nav ul {
@@ -34,29 +71,45 @@
             color: #ffffff;
             text-decoration: none;
             font-size: 1.1rem;
-            transition: color 0.3s;
+            transition: all 0.3s;
+            position: relative;
+            cursor: none;
         }
         
         nav a:hover {
             color: #888888;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
         }
         
         .container {
             max-width: 1200px;
             margin: 0 auto;
             padding: 3rem 2rem;
+            position: relative;
+            z-index: 10;
         }
         
         h1 {
             font-size: 2.5rem;
             margin-bottom: 1rem;
             color: #ffffff;
+            transition: all 0.3s;
+        }
+        
+        h1:hover {
+            text-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+            transform: scale(1.02);
         }
         
         h2 {
             font-size: 2rem;
             margin: 2rem 0 1rem;
             color: #ffffff;
+            transition: all 0.3s;
+        }
+        
+        h2:hover {
+            text-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
         }
         
         p {
@@ -66,10 +119,22 @@
         
         .section {
             margin-bottom: 3rem;
+            padding: 2rem;
+            background: rgba(26, 26, 26, 0.5);
+            border-radius: 10px;
+            transition: all 0.3s;
+            backdrop-filter: blur(5px);
+        }
+        
+        .section:hover {
+            background: rgba(40, 40, 40, 0.6);
+            box-shadow: 0 0 30px rgba(255, 255, 255, 0.1);
+            transform: translateY(-5px);
         }
         
         a {
             color: #888888;
+            cursor: none;
         }
         
         a:hover {
@@ -78,6 +143,9 @@
     </style>
 </head>
 <body>
+    <canvas id="canvas"></canvas>
+    <div class="cursor"></div>
+    
     <nav>
         <ul>
             <li><a href="#home">Home</a></li>
@@ -90,7 +158,7 @@
     <div class="container">
         <section id="home" class="section">
             <h1>Welcome to My Website</h1>
-            <p>This is a simple black-themed website template.</p>
+            <p>Move your mouse to see eye-tracking inspired visualizations. Notice how particles react to your gaze!</p>
         </section>
         
         <section id="about" class="section">
@@ -108,5 +176,166 @@
             <p>Get in touch: <a href="mailto:your@email.com">your@email.com</a></p>
         </section>
     </div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const cursor = document.querySelector('.cursor');
+        
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+        
+        const particles = [];
+        const particleCount = 150;
+        const gazeTrail = [];
+        const maxTrailLength = 30;
+        let mouseX = canvas.width / 2;
+        let mouseY = canvas.height / 2;
+        let targetX = mouseX;
+        let targetY = mouseY;
+        
+        class Particle {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.baseSize = Math.random() * 0.8 + 0.3;
+                this.size = this.baseSize;
+                this.baseSpeedX = Math.random() * 0.5 - 0.25;
+                this.baseSpeedY = Math.random() * 0.5 - 0.25;
+                this.speedX = this.baseSpeedX;
+                this.speedY = this.baseSpeedY;
+                this.baseOpacity = Math.random() * 0.3 + 0.1;
+                this.opacity = this.baseOpacity;
+                this.jitterX = 0;
+                this.jitterY = 0;
+                this.jitterTimer = 0;
+            }
+            
+            update() {
+                const dx = targetX - this.x;
+                const dy = targetY - this.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                
+                const focusRadius = 200;
+                const attractionRadius = 300;
+                
+                if (distance < attractionRadius) {
+                    const attraction = 0.002 * (1 - distance / attractionRadius);
+                    this.speedX += dx * attraction;
+                    this.speedY += dy * attraction;
+                }
+                
+                this.speedX *= 0.95;
+                this.speedY *= 0.95;
+                
+                this.speedX += this.baseSpeedX * 0.1;
+                this.speedY += this.baseSpeedY * 0.1;
+                
+                this.jitterTimer++;
+                if (this.jitterTimer > 3) {
+                    this.jitterX = (Math.random() - 0.5) * 0.5;
+                    this.jitterY = (Math.random() - 0.5) * 0.5;
+                    this.jitterTimer = 0;
+                }
+                
+                this.x += this.speedX + this.jitterX;
+                this.y += this.speedY + this.jitterY;
+                
+                if (this.x < 0) this.x = canvas.width;
+                if (this.x > canvas.width) this.x = 0;
+                if (this.y < 0) this.y = canvas.height;
+                if (this.y > canvas.height) this.y = 0;
+                
+                if (distance < focusRadius) {
+                    const focusFactor = 1 - (distance / focusRadius);
+                    this.opacity = this.baseOpacity + (0.7 * focusFactor);
+                    this.size = this.baseSize + (2 * focusFactor);
+                } else {
+                    const blurFactor = Math.min((distance - focusRadius) / 300, 1);
+                    this.opacity = this.baseOpacity * (1 - blurFactor * 0.7);
+                    this.size = this.baseSize * (1 - blurFactor * 0.5);
+                }
+            }
+            
+            draw() {
+                ctx.fillStyle = `rgba(255, 255, 255, ${this.opacity})`;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+                
+                particles.forEach(particle => {
+                    const dx = this.x - particle.x;
+                    const dy = this.y - particle.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (distance < 80) {
+                        const distToMouse = Math.sqrt(
+                            Math.pow(this.x - targetX, 2) + 
+                            Math.pow(this.y - targetY, 2)
+                        );
+                        const inFocus = distToMouse < 200;
+                        
+                        const lineOpacity = inFocus ? 
+                            0.15 * (1 - distance / 80) : 
+                            0.05 * (1 - distance / 80);
+                        
+                        ctx.strokeStyle = `rgba(255, 255, 255, ${lineOpacity})`;
+                        ctx.lineWidth = 0.5;
+                        ctx.beginPath();
+                        ctx.moveTo(this.x, this.y);
+                        ctx.lineTo(particle.x, particle.y);
+                        ctx.stroke();
+                    }
+                });
+            }
+        }
+        
+        for (let i = 0; i < particleCount; i++) {
+            particles.push(new Particle());
+        }
+        
+        function animate() {
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            targetX += (mouseX - targetX) * 0.15;
+            targetY += (mouseY - targetY) * 0.15;
+            
+            particles.forEach(particle => {
+                particle.update();
+                particle.draw();
+            });
+            
+            requestAnimationFrame(animate);
+        }
+        
+        animate();
+        
+        let frameCount = 0;
+        document.addEventListener('mousemove', (e) => {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+            
+            cursor.style.left = e.clientX - 10 + 'px';
+            cursor.style.top = e.clientY - 10 + 'px';
+        });
+        
+        document.querySelectorAll('a, h1, h2').forEach(el => {
+            el.addEventListener('mouseenter', () => {
+                cursor.style.transform = 'scale(2)';
+                cursor.style.borderColor = '#888888';
+            });
+            
+            el.addEventListener('mouseleave', () => {
+                cursor.style.transform = 'scale(1)';
+                cursor.style.borderColor = '#ffffff';
+            });
+        });
+    </script>
 </body>
 </html>
