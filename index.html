@@ -42,41 +42,31 @@
             mix-blend-mode: difference;
         }
         
-        .cursor-trail {
+        .site-header {
             position: fixed;
-            width: 8px;
-            height: 8px;
-            background: rgba(255, 255, 255, 0.5);
-            border-radius: 50%;
-            pointer-events: none;
-            z-index: 9998;
-        }
-        
-        nav {
-            background-color: rgba(26, 26, 26, 0.9);
-            padding: 1rem 2rem;
-            box-shadow: 0 2px 10px rgba(255, 255, 255, 0.1);
-            position: relative;
-            z-index: 100;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 1.5rem 3rem;
+            z-index: 1000;
+            background: rgba(0, 0, 0, 0.8);
             backdrop-filter: blur(10px);
+            display: none;
         }
         
-        nav ul {
-            list-style: none;
-            display: flex;
-            gap: 2rem;
+        .site-header.visible {
+            display: block;
         }
         
-        nav a {
+        .site-name {
+            font-size: 1.5rem;
             color: #ffffff;
-            text-decoration: none;
-            font-size: 1.1rem;
+            cursor: pointer;
             transition: all 0.3s;
-            position: relative;
-            cursor: none;
+            display: inline-block;
         }
         
-        nav a:hover {
+        .site-name:hover {
             color: #888888;
             text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
         }
@@ -89,16 +79,89 @@
             z-index: 10;
         }
         
-        h1 {
-            font-size: 2.5rem;
-            margin-bottom: 1rem;
-            color: #ffffff;
-            transition: all 0.3s;
+        .hero-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 80vh;
+            text-align: center;
         }
         
-        h1:hover {
-            text-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
-            transform: scale(1.02);
+        .hero-name {
+            font-size: 5rem;
+            margin-bottom: 4rem;
+            color: #ffffff;
+            animation: fadeInScale 1s ease-out;
+        }
+        
+        @keyframes fadeInScale {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+        
+        .main-nav {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+            align-items: center;
+        }
+        
+        .main-nav a {
+            color: #cccccc;
+            text-decoration: none;
+            font-size: 1.8rem;
+            transition: all 0.3s;
+            position: relative;
+            cursor: none;
+            opacity: 0;
+            animation: fadeInUp 0.6s ease-out forwards;
+        }
+        
+        .main-nav a:nth-child(1) { animation-delay: 0.2s; }
+        .main-nav a:nth-child(2) { animation-delay: 0.4s; }
+        .main-nav a:nth-child(3) { animation-delay: 0.6s; }
+        .main-nav a:nth-child(4) { animation-delay: 0.8s; }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .main-nav a:hover {
+            color: #ffffff;
+            text-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
+            transform: translateX(10px);
+        }
+        
+        .home-container {
+            display: block;
+        }
+        
+        .page-container {
+            padding-top: 6rem;
+            animation: fadeIn 0.5s ease-out;
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
         }
         
         h2 {
@@ -140,95 +203,54 @@
         a:hover {
             color: #ffffff;
         }
-        
-.projects-showcase {
-    padding: 3rem 2rem;
-    min-height: 400px;
-}
-
-.projects-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 2rem;
-    margin-top: 2rem;
-}
-
-.project-card {
-    background: rgba(40, 40, 40, 0.5);
-    padding: 2rem;
-    border-radius: 10px;
-    transition: all 0.3s;
-}
-
-.project-card:hover {
-    background: rgba(60, 60, 60, 0.7);
-    transform: translateY(-5px);
-    box-shadow: 0 5px 20px rgba(255, 255, 255, 0.2);
-}
-
-.project-card h3 {
-    color: #ffffff;
-    margin-bottom: 1rem;
-    font-size: 1.5rem;
-}
     </style>
 </head>
 <body>
     <canvas id="canvas"></canvas>
     <div class="cursor"></div>
     
-    <nav>
-        <ul>
-            <li><a href="#home">Home</a></li>
-            <li><a href="#about">About</a></li>
-            <li><a href="#projects">Projects</a></li>
-            <li><a href="#contact">Contact</a></li>
-        </ul>
-    </nav>
+    <header class="site-header">
+        <h1 class="site-name" onclick="showHome()">Mahsa Nasri</h1>
+    </header>
     
-    <div class="container">
-        <section id="home" class="section">
-            <h1>Welcome to My Website</h1>
-            <p>Move your mouse to see eye-tracking inspired visualizations. Notice how particles react to your gaze!</p>
-        </section>
-
-        <section id="home" class="section">
-    <h1>Welcome to My Website</h1>
-    <p>Move your mouse to see eye-tracking inspired visualizations. Notice how particles react to your gaze!</p>
-</section>
-      
-
-<section class="section projects-showcase">
-    <h2>Featured Projects</h2>
-    <div class="projects-grid">
-        <div class="project-card">
-            <h3>Project 1</h3>
-            <p>Description of your project goes here.</p>
-        </div>
-        <div class="project-card">
-            <h3>Project 2</h3>
-            <p>Description of your project goes here.</p>
-        </div>
-        <div class="project-card">
-            <h3>Project 3</h3>
-            <p>Description of your project goes here.</p>
+    <div class="container home-container" id="homeView">
+        <div class="hero-section">
+            <h1 class="hero-name">Mahsa Nasri</h1>
+            <nav class="main-nav">
+                <a href="#" onclick="showPage('behavior')">Exploring Human Behavior</a>
+                <a href="#" onclick="showPage('xr')">Creating XR</a>
+                <a href="#" onclick="showPage('research')">Research</a>
+                <a href="#" onclick="showPage('contact')">Contact</a>
+            </nav>
         </div>
     </div>
-</section>
-        
-        <section id="about" class="section">
-            <h2>About</h2>
-            <p>Add your information here. Customize this template to make it your own.</p>
+
+    <div class="container page-container" id="behaviorPage" style="display: none;">
+        <section class="section">
+            <h2>Exploring Human Behavior</h2>
+            <p>Content about exploring human behavior goes here. Add your research, insights, and projects related to human behavior.</p>
         </section>
-        
-        <section id="projects" class="section">
-            <h2>Projects</h2>
-            <p>Showcase your work and projects here.</p>
+    </div>
+
+    <div class="container page-container" id="xrPage" style="display: none;">
+        <section class="section">
+            <h2>Creating XR</h2>
+            <p>Showcase your XR projects and experiences here. Describe your work in virtual and augmented reality.</p>
         </section>
-        
-        <section id="contact" class="section">
+    </div>
+
+    <div class="container page-container" id="researchPage" style="display: none;">
+        <section class="section">
+            <h2>Research</h2>
+            <p>Present your research work, publications, and academic contributions here.</p>
+        </section>
+    </div>
+
+    <div class="container page-container" id="contactPage" style="display: none;">
+        <section class="section">
             <h2>Contact</h2>
             <p>Get in touch: <a href="mailto:your@email.com">your@email.com</a></p>
+            <p>Add your social media links and other contact information here.</p>
         </section>
     </div>
 
@@ -247,8 +269,6 @@
         
         const particles = [];
         const particleCount = 150;
-        const gazeTrail = [];
-        const maxTrailLength = 30;
         let mouseX = canvas.width / 2;
         let mouseY = canvas.height / 2;
         let targetX = mouseX;
@@ -371,44 +391,61 @@
         
         animate();
         
-      let frameCount = 0;
+        document.addEventListener('mousemove', (e) => {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+            
+            cursor.style.left = e.clientX - 10 + 'px';
+            cursor.style.top = e.clientY - 10 + 'px';
+        });
 
-// Mouse events
-    document.addEventListener('mousemove', (e) => {
-    mouseX = e.clientX;
-    mouseY = e.clientY;
-    
-    cursor.style.left = e.clientX - 10 + 'px';
-    cursor.style.top = e.clientY - 10 + 'px';
-    });
+        document.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            const touch = e.touches[0];
+            mouseX = touch.clientX;
+            mouseY = touch.clientY;
+            
+            cursor.style.left = touch.clientX - 10 + 'px';
+            cursor.style.top = touch.clientY - 10 + 'px';
+            cursor.style.display = 'block';
+        });
 
-// Touch events
-document.addEventListener('touchstart', (e) => {
-    e.preventDefault();
-    const touch = e.touches[0];
-    mouseX = touch.clientX;
-    mouseY = touch.clientY;
-    
-    cursor.style.left = touch.clientX - 10 + 'px';
-    cursor.style.top = touch.clientY - 10 + 'px';
-    cursor.style.display = 'block';
-});
+        document.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            const touch = e.touches[0];
+            mouseX = touch.clientX;
+            mouseY = touch.clientY;
+            
+            cursor.style.left = touch.clientX - 10 + 'px';
+            cursor.style.top = touch.clientY - 10 + 'px';
+        });
 
-document.addEventListener('touchmove', (e) => {
-    e.preventDefault();
-    const touch = e.touches[0];
-    mouseX = touch.clientX;
-    mouseY = touch.clientY;
-    
-    cursor.style.left = touch.clientX - 10 + 'px';
-    cursor.style.top = touch.clientY - 10 + 'px';
-});
-
-document.addEventListener('touchend', (e) => {
-    cursor.style.display = 'none';
-});
+        document.addEventListener('touchend', (e) => {
+            cursor.style.display = 'none';
+        });
         
-        document.querySelectorAll('a, h1, h2').forEach(el => {
+        function showPage(pageName) {
+            document.getElementById('homeView').style.display = 'none';
+            document.getElementById('behaviorPage').style.display = 'none';
+            document.getElementById('xrPage').style.display = 'none';
+            document.getElementById('researchPage').style.display = 'none';
+            document.getElementById('contactPage').style.display = 'none';
+            
+            document.getElementById(pageName + 'Page').style.display = 'block';
+            document.querySelector('.site-header').classList.add('visible');
+        }
+        
+        function showHome() {
+            document.getElementById('homeView').style.display = 'block';
+            document.getElementById('behaviorPage').style.display = 'none';
+            document.getElementById('xrPage').style.display = 'none';
+            document.getElementById('researchPage').style.display = 'none';
+            document.getElementById('contactPage').style.display = 'none';
+            
+            document.querySelector('.site-header').classList.remove('visible');
+        }
+        
+        document.querySelectorAll('a, h1, h2, .site-name').forEach(el => {
             el.addEventListener('mouseenter', () => {
                 cursor.style.transform = 'scale(2)';
                 cursor.style.borderColor = '#888888';
@@ -422,6 +459,3 @@ document.addEventListener('touchend', (e) => {
     </script>
 </body>
 </html>
-
-
-
