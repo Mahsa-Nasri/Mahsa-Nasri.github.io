@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOCTYPE html><!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -417,6 +417,7 @@
         let mouseY = canvas.height / 2;
         let targetX = mouseX;
         let targetY = mouseY;
+        let textBarriers = [];
         
         class Particle {
             constructor() {
@@ -435,6 +436,16 @@
                 this.jitterTimer = 0;
             }
             
+            isInsideBarrier(x, y) {
+                for (let barrier of textBarriers) {
+                    if (x > barrier.left && x < barrier.right && 
+                        y > barrier.top && y < barrier.bottom) {
+                        return barrier;
+                    }
+                }
+                return null;
+            }
+            
             update() {
                 const dx = targetX - this.x;
                 const dy = targetY - this.y;
@@ -447,6 +458,22 @@
                     const attraction = 0.002 * (1 - distance / attractionRadius);
                     this.speedX += dx * attraction;
                     this.speedY += dy * attraction;
+                }
+                
+                // Repel from text barriers
+                for (let barrier of textBarriers) {
+                    const centerX = (barrier.left + barrier.right) / 2;
+                    const centerY = (barrier.top + barrier.bottom) / 2;
+                    const distX = this.x - centerX;
+                    const distY = this.y - centerY;
+                    const dist = Math.sqrt(distX * distX + distY * distY);
+                    
+                    const repelDistance = 150;
+                    if (dist < repelDistance) {
+                        const force = (1 - dist / repelDistance) * 0.5;
+                        this.speedX += (distX / dist) * force;
+                        this.speedY += (distY / dist) * force;
+                    }
                 }
                 
                 this.speedX *= 0.95;
@@ -462,8 +489,27 @@
                     this.jitterTimer = 0;
                 }
                 
-                this.x += this.speedX + this.jitterX;
-                this.y += this.speedY + this.jitterY;
+                let newX = this.x + this.speedX + this.jitterX;
+                let newY = this.y + this.speedY + this.jitterY;
+                
+                // Check if new position is inside a barrier
+                const barrier = this.isInsideBarrier(newX, newY);
+                if (barrier) {
+                    // Push particle away from barrier
+                    const centerX = (barrier.left + barrier.right) / 2;
+                    const centerY = (barrier.top + barrier.bottom) / 2;
+                    const distX = this.x - centerX;
+                    const distY = this.y - centerY;
+                    const dist = Math.sqrt(distX * distX + distY * distY);
+                    
+                    if (dist > 0) {
+                        newX = this.x + (distX / dist) * 5;
+                        newY = this.y + (distY / dist) * 5;
+                    }
+                }
+                
+                this.x = newX;
+                this.y = newY;
                 
                 if (this.x < 0) this.x = canvas.width;
                 if (this.x > canvas.width) this.x = 0;
@@ -518,12 +564,67 @@
             particles.push(new Particle());
         }
         
+        function updateTextBarriers() {
+            textBarriers = [];
+            
+            // Add barriers for visible text elements
+            const heroName = document.querySelector('.hero-name');
+            const mainNav = document.querySelector('.main-nav');
+            const siteHeader = document.querySelector('.site-header');
+            
+            if (heroName && heroName.offsetParent !== null) {
+                const rect = heroName.getBoundingClientRect();
+                textBarriers.push({
+                    left: rect.left - 40,
+                    right: rect.right + 40,
+                    top: rect.top - 40,
+                    bottom: rect.bottom + 40
+                });
+            }
+            
+            if (mainNav && mainNav.offsetParent !== null) {
+                const rect = mainNav.getBoundingClientRect();
+                textBarriers.push({
+                    left: rect.left - 40,
+                    right: rect.right + 40,
+                    top: rect.top - 20,
+                    bottom: rect.bottom + 20
+                });
+            }
+            
+            if (siteHeader && siteHeader.classList.contains('visible')) {
+                const rect = siteHeader.getBoundingClientRect();
+                textBarriers.push({
+                    left: rect.left - 20,
+                    right: rect.right + 20,
+                    top: rect.top - 10,
+                    bottom: rect.bottom + 10
+                });
+            }
+            
+            // Add barriers for section headers
+            document.querySelectorAll('.section h2').forEach(h2 => {
+                if (h2.offsetParent !== null) {
+                    const rect = h2.getBoundingClientRect();
+                    textBarriers.push({
+                        left: rect.left - 30,
+                        right: rect.right + 30,
+                        top: rect.top - 20,
+                        bottom: rect.bottom + 20
+                    });
+                }
+            });
+        }
+        
         function animate() {
             ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             
             targetX += (mouseX - targetX) * 0.15;
             targetY += (mouseY - targetY) * 0.15;
+            
+            // Update barriers every frame
+            updateTextBarriers();
             
             particles.forEach(particle => {
                 particle.update();
